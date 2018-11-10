@@ -194,7 +194,7 @@ public class ConversationAdapter extends CCPListAdapter<Conversation> {
             if(content.contains("群管理员") && content.contains("邀请") && content.contains("群组")){
                 String nickName = "";
                 if(content.indexOf("邀请")!=-1 && content.indexOf("加入")!=-1){
-                    nickName = content.substring(content.indexOf("邀请"),content.indexOf("加入")-1);
+                    nickName = content.substring(content.lastIndexOf("[")+1,content.lastIndexOf("]"));
                 }
                 content = "群管理员邀请了["+nickName+"]加入了群组";
             }
