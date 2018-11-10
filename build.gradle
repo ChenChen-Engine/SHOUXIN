@@ -1,0 +1,39 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+
+    repositories{
+        jcenter()
+        maven { url "https://jitpack.io" }
+        google()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.1.2'
+        classpath 'com.tencent.bugly:symtabfileuploader:2.1.2'
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+        maven { url "https://jitpack.io" }
+        google()
+    }
+}
+task clean(type: Delete){
+    delete rootProject.buildDir
+}
+
+
+ext {
+
+//    compileSdkVersion 16
+//    buildToolsVersion '23.0.3'
+
+    minSdkVersion = 10
+    compileSdkVersion = 23
+    buildToolsVersion = "25.0.0"
+
+    versionCode = 6
+    versionName = "1.0.6"
+}
