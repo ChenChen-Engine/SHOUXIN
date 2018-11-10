@@ -193,7 +193,12 @@ public class SystemNoticeActivity extends ECSuperActivity implements
 
             final DemoGroupNotice item = getItem(position);
             mViewHolder.nickname.setText(item.getGroupName());
-            mViewHolder.resultSummary.setText(item.getContent());
+            String content = item.getContent();
+            if(item.getContent().contains("群管理员") && item.getContent().contains("邀请") && item.getContent().contains("群组")){
+                content = "群管理员邀请了["+item.getNickName()+"]加入了群组";
+            }
+//            mViewHolder.resultSummary.setText(item.getContent());
+            mViewHolder.resultSummary.setText(content);
 
             mViewHolder.sysMsgFrom.setText(getString(R.string.str_system_come_from, item.getGroupName()));
             mViewHolder.sysMsgFrom.setVisibility(View.GONE);

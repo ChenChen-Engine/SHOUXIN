@@ -188,7 +188,17 @@ public class ConversationAdapter extends CCPListAdapter<Conversation> {
             handleDisplayNameTextColor(mViewHolder.nickname_tv, conversation.getSessionId());
 
             CharSequence  t = getConversationSnippet(conversation);
-            mViewHolder.last_msg_tv.setText(TextUtils.isEmpty(t)?"":t);
+//            mViewHolder.last_msg_tv.setText(TextUtils.isEmpty(t)?"":t.toString());
+            String content = TextUtils.isEmpty(t)?"":t.toString();
+            //群管理员chenzj10邀请 [Test30]加入了群组
+            if(content.contains("群管理员") && content.contains("邀请") && content.contains("群组")){
+                String nickName = "";
+                if(content.indexOf("邀请")!=-1 && content.indexOf("加入")!=-1){
+                    nickName = content.substring(content.indexOf("邀请"),content.indexOf("加入")-1);
+                }
+                content = "群管理员邀请了["+nickName+"]加入了群组";
+            }
+            mViewHolder.last_msg_tv.setText(content);
             if(t!=null&&"null".equalsIgnoreCase(t.toString())){
                 mViewHolder.last_msg_tv.setText("");
             }
