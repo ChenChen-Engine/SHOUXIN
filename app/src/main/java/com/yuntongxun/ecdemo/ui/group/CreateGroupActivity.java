@@ -169,8 +169,7 @@ public class CreateGroupActivity extends BaseActivity implements ECGroupManager.
         // 设置群组公告
         group.setDeclare(tvNotice.getText().toString().trim());
         // 临时群组（100人）
-//        group.setScope(ECGroup.Scope.TEMP);
-        group.setScope(ECGroup.Scope.NONE);
+        group.setScope(ECGroup.Scope.NORMAL_SENIOR);
 
         if (siPublic.getCheckedTextView().isChecked()) {
             mPermissionModel = 1;

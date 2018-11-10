@@ -350,6 +350,10 @@ public class MobileContactSelectActivity extends BaseActivity implements
                                 return;
                             }
                         case 3:
+                            if (menbers.size() + memberArrs.length > 2000) {
+                                ToastUtil.showMessage("VIP群人数不得大于2000");
+                                return;
+                            }
                             break;
                     }
                 }
