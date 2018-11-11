@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -12,6 +13,7 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -19,6 +21,10 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.pgyersdk.update.DownloadFileListener;
+import com.pgyersdk.update.PgyUpdateManager;
+import com.pgyersdk.update.UpdateManagerListener;
+import com.pgyersdk.update.javabean.AppBean;
 import com.yuntongxun.ecdemo.ECApplication;
 import com.yuntongxun.ecdemo.R;
 import com.yuntongxun.ecdemo.common.CCPAppManager;
@@ -38,6 +44,7 @@ import com.yuntongxun.ecdemo.common.utils.SharedPreferencesUtils;
 import com.yuntongxun.ecdemo.common.utils.ToastUtil;
 import com.yuntongxun.ecdemo.core.ClientUser;
 import com.yuntongxun.ecdemo.core.ContactsCache;
+import com.yuntongxun.ecdemo.net.UpdateDialog;
 import com.yuntongxun.ecdemo.pojo.Friend;
 import com.yuntongxun.ecdemo.pojo.FsRobot;
 import com.yuntongxun.ecdemo.storage.ContactSqlManager;
@@ -59,6 +66,7 @@ import com.yuntongxun.ecsdk.platformtools.ECHandlerHelper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.InvalidClassException;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -75,6 +83,8 @@ import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 
+import static android.util.Log.d;
+
 /**
  * Created by zlk on 2017/7/24.
  */
@@ -90,7 +100,7 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
     TextView btnAddressList;
     @BindView(R.id.tv_unread_address_number)
     TextView tvUnreadAddressNumber;
-//    @BindView(R.id.btn_workbench)
+    //    @BindView(R.id.btn_workbench)
 //    TextView btnWorkbench;
     @BindView(R.id.btn_my)
     TextView btnMy;
@@ -104,6 +114,8 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
     public MainViewPagerAdapter mMainViewPagerAdapter;
     private boolean mInitActionFlag;
     ECAlertDialog showUpdaterTipsDialog = null;
+    UpdateDialog updateDialog;
+    Uri updateUri;
 
     /**
      * 当前ECLauncherUI 实例
@@ -113,6 +125,7 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
     @Override
     protected void initView(Bundle savedInstanceState) {
         mainUI = this;
+        updateDialog = new UpdateDialog(this);
 
         getPersonInfo(CCPAppManager.getUserId());
         addAI();
@@ -133,12 +146,13 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
     }
 
     public static final String AI = "sx10000";
+
     private void addAI() {
-        if(AI.equals(CCPAppManager.getUserId())){
+        if (AI.equals(CCPAppManager.getUserId())) {
             return;
         }
         Friend friend = FriendMessageSqlManager.queryFriendById(AI);
-        if(friend == null || !friend.isFriendLy()){
+        if (friend == null || !friend.isFriendLy()) {
             requestAddFriend(AI);
         }
     }
@@ -157,13 +171,13 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
 
     }
 
-    public void onNetWorkNotify(ECDevice.ECConnectState connect){
+    public void onNetWorkNotify(ECDevice.ECConnectState connect) {
         LogUtil.d(TAG, "onNetWorkNotify");
-        if(vp!=null&&vp.getCurrentItem()==0){
-          ConversationListFragment fragment = (ConversationListFragment)mMainViewPagerAdapter.getItem(0);
-          if(fragment!=null) {
-              fragment.updateConnectState();
-          }
+        if (vp != null && vp.getCurrentItem() == 0) {
+            ConversationListFragment fragment = (ConversationListFragment) mMainViewPagerAdapter.getItem(0);
+            if (fragment != null) {
+                fragment.updateConnectState();
+            }
         }
     }
 
@@ -188,8 +202,8 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
         boolean fullExit = ECPreferences.getSharedPreferences().getBoolean(
                 ECPreferenceSettings.SETTINGS_FULLY_EXIT.getId(), false);
 
-        LogUtil.e("MainAct onresume ","fullexit  = "+fullExit);
-        if (fullExit){
+        LogUtil.e("MainAct onresume ", "fullexit  = " + fullExit);
+        if (fullExit) {
             try {
                 ECPreferences.savePreference(
                         ECPreferenceSettings.SETTINGS_FULLY_EXIT, false, true);
@@ -210,15 +224,14 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
         String account = getAutoRegistAccount();
 
         if (TextUtils.isEmpty(account)) {
-            if(RestServerDefines.QR_APK){
+            if (RestServerDefines.QR_APK) {
                 startActivity(new Intent(this, PhoneUI.class));
-            }else {
+            } else {
                 startActivity(new Intent(this, com.yuntongxun.ecdemo.ui.activity.LoginActivity.class));
             }
             finish();
             return;
         }
-
 
 
         // 注册第一次登陆同步消息
@@ -251,37 +264,126 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
 
         OnUpdateMsgUnreadCounts();
         getTopContacts();
+        if(updateUri!=null){
+            installApk(updateUri);
+        }else{
+            updateApk();
+        }
+    }
 
+    private void updateApk() {
+        new PgyUpdateManager.Builder()
+                .setForced(true)                //设置是否强制更新,非自定义回调更新接口此方法有用
+                .setUserCanRetry(true)         //失败后是否提示重新下载，非自定义下载 apk 回调此方法有用
+                .setDeleteHistroyApk(false)     // 检查更新前是否删除本地历史 Apk， 默认为true
+                .setUpdateManagerListener(new UpdateManagerListener() {
+                    @Override
+                    public void onNoUpdateAvailable() {
+                        //没有更新是回调此方法
+                        d("pgyer", "there is no new version");
+                        File apk = new File(MainAct.this.getExternalCacheDir()+"/update.apk");
+                        if(apk.exists()){
+                            apk.delete();
+                        }
+                    }
+
+                    @Override
+                    public void onUpdateAvailable(AppBean appBean) {
+                        //有更新回调此方法
+                        d("pgyer", "there is new version can update"
+                                + "new versionCode is " + appBean.getVersionCode());
+                        //调用以下方法，DownloadFileListener 才有效；
+                        //如果完全使用自己的下载方法，不需要设置DownloadFileListener
+                        if(updateDialog!=null && !updateDialog.isShowing()){
+                            updateDialog.show();
+                        }
+                        PgyUpdateManager.downLoadApk(appBean.getDownloadURL());
+                    }
+
+                    @Override
+                    public void checkUpdateFailed(Exception e) {
+                        //更新检测失败回调
+                        //更新拒绝（应用被下架，过期，不在安装有效期，下载次数用尽）以及无网络情况会调用此接口
+                        Log.e("pgyer", "check update failed ", e);
+                    }
+                }).setDownloadFileListener(new DownloadFileListener() {
+            @Override
+            public void downloadFailed() {
+
+            }
+
+            @Override
+            public void downloadSuccessful(Uri uri) {
+                updateUri = uri;
+                installApk(uri);
+            }
+
+            @Override
+            public void onProgressUpdate(Integer... integers) { }
+        }).register();
+    }
+
+    /**
+     * 安装APK
+     */
+    private void installApk(Uri uri) {
+        if (uri != null) {
+            try {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                //兼容7.0
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    intent.setDataAndType(uri, "application/vnd.android.package-archive");
+                } else {
+                    intent.setDataAndType(uri, "application/vnd.android.package-archive");
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                }
+                if (this.getPackageManager().queryIntentActivities(intent, 0).size() > 0) {
+                    startActivityForResult(intent,9527);
+                }
+            } catch (Throwable e) {
+                ToastUtil.showMessage("解析包错误，请及时反馈");
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
     }
 
     private void getUserVerify() {
 
-        final Observer<Object> subscriber = new Observer<Object>(){
+        final Observer<Object> subscriber = new Observer<Object>() {
             @Override
             public void onComplete() {
                 LogUtil.e("onCompleted");
             }
+
             @Override
-            public void onError(Throwable e){
+            public void onError(Throwable e) {
             }
+
             @Override
             public void onSubscribe(Disposable d) {
             }
+
             @Override
-            public void onNext(Object movieEntity){
-                if(movieEntity!=null){
-                    ResponseBody body = (ResponseBody)movieEntity;
+            public void onNext(Object movieEntity) {
+                if (movieEntity != null) {
+                    ResponseBody body = (ResponseBody) movieEntity;
                     try {
                         String s = new String(body.bytes());
-                        LogUtil.e("getuserverify",s);
-                        if(DemoUtils.isTrue(s)){
+                        LogUtil.e("getuserverify", s);
+                        if (DemoUtils.isTrue(s)) {
                             JSONObject jsonObject = new JSONObject(s);
-                            if(jsonObject.has("addVerify")){
+                            if (jsonObject.has("addVerify")) {
                                 String v = jsonObject.getString("addVerify");
-                                SharedPreferencesUtils.setParam(MainAct.this,SharedPreferencesUtils.FRIEND_TAG,v);
+                                SharedPreferencesUtils.setParam(MainAct.this, SharedPreferencesUtils.FRIEND_TAG, v);
                             }
-                        }else {
+                        } else {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -297,48 +399,52 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
 
 
     }
+
     private void getRobot() {
 
-        final Observer<Object> subscriber = new Observer<Object>(){
+        final Observer<Object> subscriber = new Observer<Object>() {
             @Override
             public void onComplete() {
                 LogUtil.e("onCompleted");
             }
+
             @Override
-            public void onError(Throwable e){
+            public void onError(Throwable e) {
             }
+
             @Override
             public void onSubscribe(Disposable d) {
             }
+
             @Override
-            public void onNext(Object movieEntity){
-                if(movieEntity!=null){
-                    ResponseBody body = (ResponseBody)movieEntity;
+            public void onNext(Object movieEntity) {
+                if (movieEntity != null) {
+                    ResponseBody body = (ResponseBody) movieEntity;
                     try {
                         String s = new String(body.bytes());
-                        LogUtil.e("getrobot",s);
-                        if(DemoUtils.isTrue(s)){
+                        LogUtil.e("getrobot", s);
+                        if (DemoUtils.isTrue(s)) {
 
                             FsRobot robot = new FsRobot();
                             JSONObject jsonObject = new JSONObject(s);
-                            if(jsonObject.has("robotList")){
+                            if (jsonObject.has("robotList")) {
                                 JSONArray v = jsonObject.getJSONArray("robotList");
                                 JSONObject obj = (JSONObject) v.get(0);
                                 RestServerDefines.ROBOT = obj.getString("robotId");
 
-                                if(obj.has("age")){
+                                if (obj.has("age")) {
                                     robot.age = obj.getString("age");
                                 }
-                                if(obj.has("sex")){
+                                if (obj.has("sex")) {
                                     robot.sex = obj.getString("sex");
                                 }
-                                if(obj.has("name")){
-                                    robot.name= obj.getString("name");
+                                if (obj.has("name")) {
+                                    robot.name = obj.getString("name");
                                 }
                                 CCPAppManager.setRobot(robot);
                             }
 
-                        }else {
+                        } else {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -354,38 +460,42 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
 
 
     }
+
     private void getDis() {
 
-        final Observer<Object> subscriber = new Observer<Object>(){
+        final Observer<Object> subscriber = new Observer<Object>() {
             @Override
             public void onComplete() {
                 LogUtil.e("onCompleted");
             }
+
             @Override
-            public void onError(Throwable e){
+            public void onError(Throwable e) {
             }
+
             @Override
             public void onSubscribe(Disposable d) {
             }
+
             @Override
-            public void onNext(Object movieEntity){
-                if(movieEntity!=null){
-                    ResponseBody body = (ResponseBody)movieEntity;
+            public void onNext(Object movieEntity) {
+                if (movieEntity != null) {
+                    ResponseBody body = (ResponseBody) movieEntity;
                     try {
                         String s = new String(body.bytes());
-                        LogUtil.e("getDis",s);
-                        if(DemoUtils.isTrue(s)){
+                        LogUtil.e("getDis", s);
+                        if (DemoUtils.isTrue(s)) {
                             JSONObject jsonObject = new JSONObject(s);
-                            if(jsonObject.has("result")){
+                            if (jsonObject.has("result")) {
                                 JSONArray v = jsonObject.getJSONArray("result");
-                                if(v!=null&&v.length()>0){
-                                    for(int i=0;i<v.length();i++){
+                                if (v != null && v.length() > 0) {
+                                    for (int i = 0; i < v.length(); i++) {
                                         phoneList.add(v.getString(i));
 
                                     }
                                 }
                             }
-                        }else {
+                        } else {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -401,11 +511,12 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
 
 
     }
+
     public static HashSet<String> phoneList = new HashSet<>();
 
     public static String getMessageDigest(byte[] input) {
-        char[] source = { '0', '1', '2', '3', '4', '5', '6', '7', '8',
-                '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+        char[] source = {'0', '1', '2', '3', '4', '5', '6', '7', '8',
+                '9', 'a', 'b', 'c', 'd', 'e', 'f'};
         try {
             MessageDigest mDigest = MessageDigest.getInstance("MD5");
             mDigest.update(input);
@@ -423,8 +534,8 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
         return null;
     }
 
-    public  String getSig(String stime){
-        String s = RestServerDefines.APPKER+CCPAppManager.getAppToken()+stime;
+    public String getSig(String stime) {
+        String s = RestServerDefines.APPKER + CCPAppManager.getAppToken() + stime;
         return getMessageDigest(s.getBytes());
     }
 
@@ -439,11 +550,11 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
         super.onDestroy();
     }
 
-    private void getTopContacts(){
+    private void getTopContacts() {
 
         final ArrayList<String> arrayList = ConversationSqlManager.getInstance().qureyAllSession();
-        ECChatManager chatManager =ECDevice.getECChatManager();
-        if(chatManager ==null){
+        ECChatManager chatManager = ECDevice.getECChatManager();
+        if (chatManager == null) {
             return;
         }
         chatManager.getSessionsOfTop(new ECChatManager.OnGetSessionsOfTopListener() {
@@ -470,13 +581,13 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
     }
 
     @Override
-    public void onBackPressed(){
+    public void onBackPressed() {
 
         moveTaskToBack(true);
     }
 
     @Override
-    protected void initWidgetAciotns(){
+    protected void initWidgetAciotns() {
 
         vp.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
@@ -573,7 +684,7 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
      *
      * @return
      */
-    private String getAutoRegistAccount(){
+    private String getAutoRegistAccount() {
         SharedPreferences sharedPreferences = ECPreferences
                 .getSharedPreferences();
         ECPreferenceSettings registAuto = ECPreferenceSettings.SETTINGS_REGIST_AUTO;
@@ -581,8 +692,6 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
                 (String) registAuto.getDefaultValue());
         return registAccount;
     }
-
-
 
 
     private void showUpdaterTips(String updateDesc, final boolean force) {
@@ -635,9 +744,9 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
 
         ECDevice.unInitial();
 
-        Class z  = RestServerDefines.QR_APK?PhoneUI.class: com.yuntongxun.ecdemo.ui.activity.LoginActivity.class;
+        Class z = RestServerDefines.QR_APK ? PhoneUI.class : com.yuntongxun.ecdemo.ui.activity.LoginActivity.class;
 
-        Intent intent = new Intent(this,z);
+        Intent intent = new Intent(this, z);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
         android.os.Process.killProcess(android.os.Process.myPid());
@@ -683,21 +792,21 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
     }
 
     @Override
-    public void  OnUpdateMsgUnreadCounts() {
+    public void OnUpdateMsgUnreadCounts() {
         int unreadCount = IMessageSqlManager.qureyAllSessionUnreadCount();
 //        int notifyUnreadCount = IMessageSqlManager.getUnNotifyUnreadCount();
         int count = unreadCount;
 //        if (unreadCount >= notifyUnreadCount) {
 //            count = unreadCount - notifyUnreadCount;
 //        }
-        if(count > 0) {
+        if (count > 0) {
             tvUnreadMsgNumber.setVisibility(View.VISIBLE);
-            if(count > 99) {
+            if (count > 99) {
                 tvUnreadMsgNumber.setText(getResources().getString(R.string.unread_count_overt_100));
-            }else{
+            } else {
                 tvUnreadMsgNumber.setText(String.valueOf(unreadCount));
             }
-        }else{
+        } else {
             tvUnreadMsgNumber.setVisibility(View.GONE);
 
         }
@@ -755,7 +864,7 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
         }
     }
 
-    public void handlerKickOff(String kickoffText){
+    public void handlerKickOff(String kickoffText) {
         if (isFinishing()) {
             return;
         }
@@ -778,11 +887,20 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
 
     private void getPersonInfo(final String friendId) {
         Observer<Object> subscriber = new Observer<Object>() {
-            @Override public void onComplete() { LogUtil.e("onCompleted"); }
-            @Override public void onError(Throwable e) {
+            @Override
+            public void onComplete() {
+                LogUtil.e("onCompleted");
+            }
+
+            @Override
+            public void onError(Throwable e) {
                 LogUtil.e(e.toString());
             }
-            @Override public void onSubscribe(Disposable d) { }
+
+            @Override
+            public void onSubscribe(Disposable d) {
+            }
+
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void onNext(Object movieEntity) {
@@ -803,8 +921,8 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
                         }
                         if (DemoUtils.isTrue(s)) {
                             Friend friend = DemoUtils.getFriendInfo(s);
-                            FriendMessageSqlManager.updateAll(friendId, friend.getNickName(),friend.getFriendState(), friend.getAvatar(), friend.getRemarkName());
-                            if(TextUtils.isEmpty(friend.getNickName())){
+                            FriendMessageSqlManager.updateAll(friendId, friend.getNickName(), friend.getFriendState(), friend.getAvatar(), friend.getRemarkName());
+                            if (TextUtils.isEmpty(friend.getNickName())) {
                                 Intent settingAction = new Intent(MainAct.this, PersonInfoUI.class);
                                 settingAction.putExtra("from_regist", true);
                                 startActivity(settingAction);
@@ -830,10 +948,25 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
             return;
         }
         Observer<Object> subscriber = new Observer<Object>() {
-            @Override public void onComplete() { System.out.println(); }
-            @Override public void onError(Throwable e) { System.out.println(); }
-            @Override public void onSubscribe(Disposable d) { System.out.println(); }
-            @Override public void onNext(Object movieEntity) { System.out.println(); }
+            @Override
+            public void onComplete() {
+                System.out.println();
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                System.out.println();
+            }
+
+            @Override
+            public void onSubscribe(Disposable d) {
+                System.out.println();
+            }
+
+            @Override
+            public void onNext(Object movieEntity) {
+                System.out.println();
+            }
         };
         String time = DateUtil.formatNowDate(new Date());
         String url = getSig(time);
