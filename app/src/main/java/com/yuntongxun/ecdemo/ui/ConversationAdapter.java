@@ -198,6 +198,17 @@ public class ConversationAdapter extends CCPListAdapter<Conversation> {
                 }
                 content = "群管理员邀请了["+nickName+"]加入了群组";
             }
+            if(content.contains("撤销") && content.contains("消息")){
+                if(content.indexOf("撤销")!=-1){
+                    String msg = content.substring(content.indexOf("撤销"),content.length());
+                    String nickName="";
+                    if(content.indexOf(msg)!=-1){
+                        String suxunNum = content.substring(0,content.indexOf(msg));
+                        nickName = AvatorUtil.getInstance().getContactNick(suxunNum);
+                        content = nickName+msg;
+                    }
+                }
+            }
             mViewHolder.last_msg_tv.setText(content);
             if(t!=null&&"null".equalsIgnoreCase(t.toString())){
                 mViewHolder.last_msg_tv.setText("");

@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.yuntongxun.ecdemo.AvatorUtil;
 import com.yuntongxun.ecdemo.R;
 import com.yuntongxun.ecdemo.common.utils.DateUtil;
 import com.yuntongxun.ecdemo.common.utils.LogUtil;
@@ -48,6 +49,7 @@ import com.yuntongxun.ecsdk.ECError;
 import com.yuntongxun.ecsdk.ECMessage;
 import com.yuntongxun.ecsdk.SdkErrorCode;
 import com.yuntongxun.ecsdk.im.ECGroup;
+import com.yuntongxun.ecsdk.im.ECTextMessageBody;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -197,6 +199,26 @@ public class ChattingListAdapter2 extends CCPListAdapter<ECMessage> {
 
         if (TextUtils.isEmpty(item.getSessionId())) {
             item.setSessionId(mUsername);
+        }
+
+        if(item.getBody() instanceof ECTextMessageBody){
+            ECTextMessageBody body = (ECTextMessageBody) item.getBody();
+            String message = body.getMessage();
+            if(message.contains("撤销") && message.contains("消息")){
+                if(message.indexOf("撤销")!=-1){
+                    String msg = message.substring(message.indexOf("撤销"),message.length());
+                    String nickName="";
+                    if(message.indexOf(msg)!=-1){
+                        String suxunNum = message.substring(0,message.indexOf(msg));
+                        nickName = AvatorUtil.getInstance().getContactNick(suxunNum);
+                        item.setUserData(item.getUserData().replace(suxunNum,nickName));
+                    }
+                    if(!TextUtils.isEmpty(nickName)){
+                        body.setMessage(nickName+msg);
+                        item.setBody(body);
+                    }
+                }
+            }
         }
         chattingRow.buildChattingBaseData(mContext, baseHolder, item, position);
 

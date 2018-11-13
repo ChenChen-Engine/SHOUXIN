@@ -74,7 +74,7 @@ public class AvatorUtil {
         }
     }
 
-    private String getContactNick(String phone) {
+    public String getContactNick(String phone) {
         ECContacts contact = ContactSqlManager.getContact(phone);//昵称
         if (contact == null) {
             return phone;
