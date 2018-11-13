@@ -807,6 +807,8 @@ public class IMChattingHelper implements OnChatReceiveListener,
     }
 
     private int mHistoryMsgCount = 0;
+    private int maxHistoryMsgCount = 500;
+    private int msgCount=0;
 
     @Override
     public void onOfflineMessageCount(int count) {
@@ -817,7 +819,7 @@ public class IMChattingHelper implements OnChatReceiveListener,
     public int onGetOfflineMessage() {
         // 获取全部的离线历史消息
 //        return ECDevice.SYNC_OFFLINE_MSG_ALL;
-        return 1200;
+        return maxHistoryMsgCount;
     }
 
     private ECMessage mOfflineMsg = null;
@@ -831,9 +833,21 @@ public class IMChattingHelper implements OnChatReceiveListener,
         if (msgs != null && !msgs.isEmpty() && !isFirstSync) {
             isFirstSync = true;
         }
-        for (ECMessage msg : msgs) {
-            mOfflineMsg = msg;
-            postReceiveMessage(msg, false);
+        msgCount+=msgs.size();
+        if(msgCount>maxHistoryMsgCount){
+            return;
+        }
+        if(msgs.size()>maxHistoryMsgCount){
+            for (int i = 0; i < maxHistoryMsgCount; i++) {
+                ECMessage msg = msgs.get(i);
+                mOfflineMsg = msg;
+                postReceiveMessage(msg,false);
+            }
+        }else {
+            for (ECMessage msg : msgs) {
+                mOfflineMsg = msg;
+                postReceiveMessage(msg, false);
+            }
         }
     }
 
@@ -842,6 +856,7 @@ public class IMChattingHelper implements OnChatReceiveListener,
         if (mOfflineMsg == null) {
             return;
         }
+        msgCount = 0;
         // SDK离线消息拉取完成之后会通过该接口通知应用
         // 应用可以在此做类似于Loading框的关闭，Notification通知等等
         // 如果已经没有需要同步消息的请求时候，则状态栏开始提醒
