@@ -55,7 +55,6 @@ import com.yuntongxun.ecsdk.ECError;
 import com.yuntongxun.ecsdk.SdkErrorCode;
 import com.yuntongxun.ecsdk.im.ECGroup;
 import com.yuntongxun.ecsdk.im.ECGroupOption;
-import com.yuntongxun.ecsdk.platformtools.ECHandlerHelper;
 
 import java.io.InvalidClassException;
 import java.util.ArrayList;
@@ -403,21 +402,25 @@ public class ConversationListFragment extends LazyFrament implements CCPListAdap
             switch (position) {
                 case 0:
                     showProcessDialog();
-                    ECHandlerHelper handlerHelper = new ECHandlerHelper();
-                    handlerHelper.postRunnOnThead(new Runnable() {
+                    new Thread(){
                         @Override
                         public void run() {
-                            IMessageSqlManager.deleteChattingMessage(conversation.getSessionId());
-                            ToastUtil.showMessage(R.string.clear_msg_success);
-                            ConversationListFragment.this.getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    dismissPostingDialog();
-                                    mAdapter.notifyChange();
-                                }
-                            });
+                            try {
+                                IMessageSqlManager.deleteChattingMessage(conversation.getSessionId());
+                                ToastUtil.showMessage(R.string.clear_msg_success);
+                            }catch (Exception e){
+                                System.out.println(e.getMessage());
+                            }finally {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        dismissPostingDialog();
+                                        mAdapter.notifyChange();
+                                    }
+                                });
+                            }
                         }
-                    });
+                    }.start();
                     break;
                 case 2:
                     showProcessDialog();
