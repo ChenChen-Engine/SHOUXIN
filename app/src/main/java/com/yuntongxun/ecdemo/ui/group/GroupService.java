@@ -374,7 +374,8 @@ public class GroupService {
         group.setPermission(ECGroup.Permission.NEED_AUTH);
         // 设置群组创建者（可以不设置，服务器默认接口调用者为创建者）
         group.setOwner(CCPAppManager.getClientUser().getUserId());
-
+        //人数
+        group.setScope(ECGroup.Scope.NORMAL_SENIOR);
         getGroupManager();
         getInstance().mGroupManager.createGroup(group, new ECGroupManager.OnCreateGroupListener() {
 

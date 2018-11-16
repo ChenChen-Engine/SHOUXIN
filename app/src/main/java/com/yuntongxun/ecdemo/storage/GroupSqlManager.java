@@ -543,6 +543,7 @@ public class GroupSqlManager extends AbstractSQLManager {
                 group.setDeclare(cursor.getString(5));
                 group.setOwner(cursor.getString(6));
                 group.setIsNotice(!(cursor.getInt(7) == 2));
+                group.setScope(ECGroup.Scope.NORMAL_SENIOR);
                 return group;
             }
         } catch (Exception e) {

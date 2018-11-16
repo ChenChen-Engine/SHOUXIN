@@ -385,6 +385,7 @@ public class GroupNoticeHelper {
 			ECGroup group = new ECGroup();
 			group.setGroupId(instanceMsg.getGroupId());
 			group.setName(instanceMsg.getGroupName());
+			group.setScope(ECGroup.Scope.NORMAL_SENIOR);
 			demoGroupNotice.setAdmin(invireMsg.getAdmin());
 			demoGroupNotice.setNickName(invireMsg.getNickName());
 			demoGroupNotice.setConfirm(invireMsg.getConfirm());
