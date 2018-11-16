@@ -18,6 +18,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
@@ -972,20 +973,31 @@ public class GroupInfoActivity extends BaseGroupReceiveAct implements GroupMembe
      * 解散群组
      */
     private void dissolveGroup() {
-        mPostingdialog = new ECProgressDialog(this,
-                "请稍后...");
-        mPostingdialog.show();
+        new AlertDialog
+                .Builder(this)
+                .setTitle("删除该群")
+                .setMessage("是否确定删除该群组")
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
 
-        if (GroupSqlManager.isDiscussionGroup(groupId)) {
-            GroupService.quitGroup(mGroup.getGroupId());
-            return;
-        }
-
-        if (isCreat()) {
-            GroupService.disGroup(mGroup.getGroupId());
-            return;
-        }
-        GroupService.quitGroup(mGroup.getGroupId());
+                    }
+                }).setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                mPostingdialog = new ECProgressDialog(GroupInfoActivity.this, "请稍后...");
+                mPostingdialog.show();
+                if (GroupSqlManager.isDiscussionGroup(groupId)) {
+                    GroupService.quitGroup(mGroup.getGroupId());
+                    return;
+                }
+                if (isCreat()) {
+                    GroupService.disGroup(mGroup.getGroupId());
+                    return;
+                }
+                GroupService.quitGroup(mGroup.getGroupId());
+            }
+        }).create().show();
     }
 
 
