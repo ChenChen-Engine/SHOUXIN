@@ -40,6 +40,7 @@ import com.yuntongxun.ecdemo.ui.chatting.redpacketutils.CheckRedPacketMessageUti
 import com.yuntongxun.ecdemo.ui.contact.ECContacts;
 import com.yuntongxun.ecdemo.ui.group.DemoGroupNotice;
 import com.yuntongxun.ecdemo.ui.group.GroupNoticeHelper;
+import com.yuntongxun.ecdemo.utils.OfflineMessageHandler;
 import com.yuntongxun.ecsdk.ECChatManager;
 import com.yuntongxun.ecsdk.ECDevice;
 import com.yuntongxun.ecsdk.ECError;
@@ -71,6 +72,7 @@ import java.io.InvalidClassException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import io.vov.vitamio.utils.Log;
@@ -96,7 +98,7 @@ public class IMChattingHelper implements OnChatReceiveListener,
 
     public static final String USER_STATE = "chat_state";
     public static final String GROUP_PRIVATE_TAG = "@priategroup.com";
-    private static HashMap<String, SyncMsgEntry> syncMessage = new HashMap<String, SyncMsgEntry>();
+    public static HashMap<String, SyncMsgEntry> syncMessage = new HashMap<String, SyncMsgEntry>();
     private static IMChattingHelper sInstance;
     private boolean isSyncOffline = false;
 
@@ -135,7 +137,7 @@ public class IMChattingHelper implements OnChatReceiveListener,
     /**
      * 消息发送报告
      */
-    private OnMessageReportCallback mOnMessageReportCallback;
+    public static OnMessageReportCallback mOnMessageReportCallback;
 
     /**
      * 发送ECMessage 消息
@@ -709,7 +711,7 @@ public class IMChattingHelper implements OnChatReceiveListener,
         GroupNoticeSqlManager.insertNoticeMsg(demoGroupNotice, member);
     }
 
-    private static void showNotification(ECMessage msg) {
+    public static void showNotification(ECMessage msg) {
         if (checkNeedNotification(msg.getSessionId())) {
             ECNotificationManager.getInstance().forceCancelNotification();
             String lastMsg = "";
@@ -809,10 +811,16 @@ public class IMChattingHelper implements OnChatReceiveListener,
     private int mHistoryMsgCount = 0;
     private int maxHistoryMsgCount = 500;
     private int msgCount=0;
+    private Map<String,ECMessage> offLineMap = new HashMap<>();
 
     @Override
     public void onOfflineMessageCount(int count) {
-        mHistoryMsgCount = count;
+        //如果消息大于500就500
+        if(count>=maxHistoryMsgCount){
+            mHistoryMsgCount = maxHistoryMsgCount;
+        }else{
+            mHistoryMsgCount = count;
+        }
     }
 
     @Override
@@ -833,20 +841,18 @@ public class IMChattingHelper implements OnChatReceiveListener,
         if (msgs != null && !msgs.isEmpty() && !isFirstSync) {
             isFirstSync = true;
         }
-        msgCount+=msgs.size();
-        if(msgCount>maxHistoryMsgCount){
-            return;
-        }
-        if(msgs.size()>maxHistoryMsgCount){
-            for (int i = 0; i < maxHistoryMsgCount; i++) {
-                ECMessage msg = msgs.get(i);
-                mOfflineMsg = msg;
-                postReceiveMessage(msg,false);
+        for (ECMessage msg : msgs) {
+            msgCount++;
+            if(msgCount>maxHistoryMsgCount){
+                return;
             }
-        }else {
-            for (ECMessage msg : msgs) {
-                mOfflineMsg = msg;
-                postReceiveMessage(msg, false);
+            mOfflineMsg = msg;
+            OfflineMessageHandler.postReceiveMessage(msg, false);
+            //判断msg是否是群消息
+            if (msg.getType() == ECMessage.Type.STATE) { //状态消息
+                if(isGroup(msg)){
+                    offLineMap.put(msg.getTo(),msg);
+                }
             }
         }
     }
@@ -874,6 +880,8 @@ public class IMChattingHelper implements OnChatReceiveListener,
         CCPAppManager.getContext().sendBroadcast(
                 new Intent(INTENT_ACTION_SYNC_MESSAGE));
         mOfflineMsg = null;
+        OfflineMessageHandler.sendBroad(offLineMap);
+        offLineMap.clear();
     }
 
     public int mServicePersonVersion = 0;
@@ -1021,7 +1029,7 @@ public class IMChattingHelper implements OnChatReceiveListener,
         }
     }
 
-    public class SyncMsgEntry {
+    public static class SyncMsgEntry {
         // 是否是第一次初始化同步消息
         boolean showNotice = false;
         boolean thumbnail = false;
