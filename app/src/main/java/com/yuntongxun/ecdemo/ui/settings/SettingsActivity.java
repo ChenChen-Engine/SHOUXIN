@@ -12,20 +12,14 @@
  */
 package com.yuntongxun.ecdemo.ui.settings;
 
-import android.annotation.TargetApi;
-import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.View;
@@ -48,28 +42,19 @@ import com.yuntongxun.ecdemo.common.view.InfoItem;
 import com.yuntongxun.ecdemo.common.view.SettingItem;
 import com.yuntongxun.ecdemo.core.ClientUser;
 import com.yuntongxun.ecdemo.storage.ContactSqlManager;
-import com.yuntongxun.ecdemo.storage.GroupSqlManager;
 import com.yuntongxun.ecdemo.ui.ECSuperActivity;
-import com.yuntongxun.ecdemo.ui.MainAct;
 import com.yuntongxun.ecdemo.ui.SDKCoreHelper;
+import com.yuntongxun.ecdemo.ui.activity.LoginActivity;
 import com.yuntongxun.ecdemo.ui.chatting.IMChattingHelper;
 import com.yuntongxun.ecdemo.ui.chatting.base.EmojiconTextView;
 import com.yuntongxun.ecdemo.ui.contact.ContactLogic;
 import com.yuntongxun.ecdemo.ui.contact.ECContacts;
-import com.yuntongxun.ecdemo.ui.group.GroupInfoActivity;
-import com.yuntongxun.ecdemo.ui.group.GroupService;
 import com.yuntongxun.ecdemo.ui.huawei.PustDemoActivity;
 import com.yuntongxun.ecdemo.ui.xiaomi.MainActivity;
 
 import java.io.InvalidClassException;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import utils.RedPacketUtil;
-
-import static android.provider.Settings.EXTRA_APP_PACKAGE;
-import static android.provider.Settings.EXTRA_CHANNEL_ID;
 
 
 /**
@@ -366,7 +351,8 @@ public class SettingsActivity extends ECSuperActivity implements View.OnClickLis
         super.handleReceiver(context, intent);
         if(SDKCoreHelper.ACTION_LOGOUT.equals(intent.getAction())) {
             try {
-                Intent outIntent = new Intent(SettingsActivity.this, MainAct.class);
+                CCPAppManager.setClientUser(new ClientUser(""));
+                Intent outIntent = new Intent(SettingsActivity.this, LoginActivity.class);
                 outIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 if(mExitType == 1) {
                     ECPreferences.savePreference(ECPreferenceSettings.SETTINGS_FULLY_EXIT, true, true);
