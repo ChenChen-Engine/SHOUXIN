@@ -94,6 +94,11 @@
             ecdemo:item_showDivider="false"
             ecdemo:item_titleText="@string/settings_new_msg_notification_shake" />
 
+        <com.yuntongxun.ecdemo.common.view.InfoItem
+            android:id="@+id/info_notifi"
+            android:layout_width="match_parent"
+            android:layout_height="43dp"
+            android:background="@color/white"></com.yuntongxun.ecdemo.common.view.InfoItem>
 
         <com.yuntongxun.ecdemo.common.view.SettingItem
             android:id="@+id/settings_serverIP"

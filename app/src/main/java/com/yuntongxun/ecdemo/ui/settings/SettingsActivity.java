@@ -12,11 +12,21 @@
  */
 package com.yuntongxun.ecdemo.ui.settings;
 
+import android.annotation.TargetApi;
+import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.CheckBox;
@@ -34,9 +44,11 @@ import com.yuntongxun.ecdemo.common.utils.ECPreferenceSettings;
 import com.yuntongxun.ecdemo.common.utils.ECPreferences;
 import com.yuntongxun.ecdemo.common.utils.LogUtil;
 import com.yuntongxun.ecdemo.common.utils.SharedPreferencesUtils;
+import com.yuntongxun.ecdemo.common.view.InfoItem;
 import com.yuntongxun.ecdemo.common.view.SettingItem;
 import com.yuntongxun.ecdemo.core.ClientUser;
 import com.yuntongxun.ecdemo.storage.ContactSqlManager;
+import com.yuntongxun.ecdemo.storage.GroupSqlManager;
 import com.yuntongxun.ecdemo.ui.ECSuperActivity;
 import com.yuntongxun.ecdemo.ui.MainAct;
 import com.yuntongxun.ecdemo.ui.SDKCoreHelper;
@@ -44,12 +56,20 @@ import com.yuntongxun.ecdemo.ui.chatting.IMChattingHelper;
 import com.yuntongxun.ecdemo.ui.chatting.base.EmojiconTextView;
 import com.yuntongxun.ecdemo.ui.contact.ContactLogic;
 import com.yuntongxun.ecdemo.ui.contact.ECContacts;
+import com.yuntongxun.ecdemo.ui.group.GroupInfoActivity;
+import com.yuntongxun.ecdemo.ui.group.GroupService;
 import com.yuntongxun.ecdemo.ui.huawei.PustDemoActivity;
 import com.yuntongxun.ecdemo.ui.xiaomi.MainActivity;
 
 import java.io.InvalidClassException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import utils.RedPacketUtil;
+
+import static android.provider.Settings.EXTRA_APP_PACKAGE;
+import static android.provider.Settings.EXTRA_CHANNEL_ID;
 
 
 /**
@@ -98,6 +118,8 @@ public class SettingsActivity extends ECSuperActivity implements View.OnClickLis
     private ECProgressDialog mPostingdialog;
 
     private int mExitType = 0;
+
+    private InfoItem notifiInfo;
 
     private final View.OnClickListener mSettingExitClickListener
                 = new View.OnClickListener() {
@@ -254,7 +276,14 @@ public class SettingsActivity extends ECSuperActivity implements View.OnClickLis
         mSettingAppkey.setOnClickListener(new OnConfigClickListener(CONFIG_TYPE_APPKEY));
         mSettingToken.setOnClickListener(new OnConfigClickListener(CONFIG_TYPE_TOKEN));
 
-
+        notifiInfo = findViewById(R.id.info_notifi);
+        notifiInfo.setLeftTitle("通知栏设置步骤");
+        notifiInfo.setRootViewOnCliclListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startOpenNofitiPermission();
+            }
+        });
 
 
         if( IMChattingHelper.getInstance() != null
@@ -282,6 +311,40 @@ public class SettingsActivity extends ECSuperActivity implements View.OnClickLis
                 RedPacketUtil.startChangeActivity(SettingsActivity.this, fromNickname, fromAvatarUrl, CCPAppManager.getClientUser().getUserId());
             }
         });
+    }
+
+    /**
+     * 跳转开启通知栏权限
+     */
+    private void startOpenNofitiPermission() {
+        new AlertDialog
+                .Builder(this)
+                .setTitle("通知栏权限设置操作步骤")
+                .setMessage("1.打开设置\n2.打开通知栏和状态栏\n3.打开通知管理\n4.找到"+getAppName(this)+"点击打开\n5.设置允许通知并允许所有通知设置")
+                .setNegativeButton("我知道了", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        try{
+                            Intent intent =  new Intent(Settings.ACTION_SETTINGS);
+                            startActivity(intent);
+                        }catch (Exception e){
+
+                        }
+                    }
+                }).create().show();
+    }
+
+    public static synchronized String getAppName(Context context) {
+        try {
+            PackageManager packageManager = context.getPackageManager();
+            PackageInfo packageInfo = packageManager.getPackageInfo(
+                    context.getPackageName(), 0);
+            int labelRes = packageInfo.applicationInfo.labelRes;
+            return context.getResources().getString(labelRes);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private void initConfigValue() {
