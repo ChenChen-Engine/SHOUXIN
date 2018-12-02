@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.yuntongxun.ecdemo.AvatorUtil;
 import com.yuntongxun.ecdemo.ECApplication;
 import com.yuntongxun.ecdemo.R;
 import com.yuntongxun.ecdemo.common.CCPAppManager;
@@ -116,6 +117,8 @@ public class GroupInfoAdapter extends ArrayAdapter<ECGroupMember> {
                 mViewHolder.mAvatar.setVisibility(View.GONE);
                 mViewHolder.mivAvatar.setVisibility(View.VISIBLE);
                 ImageLoader.getInstance().displayCricleImage(mContext,headUrl,mViewHolder.mivAvatar);
+                mViewHolder.mivAvatar.invalidate();
+
             } else {
                 if (CCPAppManager.getUserId().equals(item.getVoipAccount())&&!TextUtils.isEmpty(ECApplication.photoUrl)) {
                     mViewHolder.mAvatar.setVisibility(View.GONE);
@@ -127,6 +130,7 @@ public class GroupInfoAdapter extends ArrayAdapter<ECGroupMember> {
                     mViewHolder.mAvatar.setBackgroundResource(R.drawable.memer_bg);
                     mViewHolder.mAvatar.setText(TextUtils.isEmpty(item.getDisplayName()) ?
                             item.getVoipAccount() : item.getDisplayName());
+                    AvatorUtil.getInstance().getAvatorUrl(item.getVoipAccount());
                 }
             }
         }

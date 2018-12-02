@@ -13,9 +13,11 @@
 package com.yuntongxun.ecdemo.ui.group;
 
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -55,6 +57,7 @@ import com.yuntongxun.ecdemo.storage.GroupSqlManager;
 import com.yuntongxun.ecdemo.storage.IMessageSqlManager;
 import com.yuntongxun.ecdemo.ui.adapter.GroupInfoAdapter;
 import com.yuntongxun.ecdemo.ui.chatting.ChattingActivity;
+import com.yuntongxun.ecdemo.ui.chatting.ChattingFragment;
 import com.yuntongxun.ecdemo.ui.chatting.IMChattingHelper;
 import com.yuntongxun.ecdemo.ui.contact.ContactDetailActivity;
 import com.yuntongxun.ecdemo.ui.contact.ECContacts;
@@ -168,7 +171,7 @@ public class GroupInfoActivity extends BaseGroupReceiveAct implements GroupMembe
 
     public static boolean isFromDiscussionInviteClick = false;
     private int memCount;
-
+    private AvatarReceiver avatarReceiver;
 
     private AdapterView.OnItemClickListener mItemClickListener = new AdapterView.OnItemClickListener() {
 
@@ -268,6 +271,9 @@ public class GroupInfoActivity extends BaseGroupReceiveAct implements GroupMembe
     protected void onDestroy() {
         super.onDestroy();
         isCreat = false;
+        if(avatarReceiver!=null){
+            unregisterReceiver(avatarReceiver);
+        }
     }
 
     @Override
@@ -356,7 +362,27 @@ public class GroupInfoActivity extends BaseGroupReceiveAct implements GroupMembe
         gvMember.setAdapter(mAdapter);
         gvMember.setOnItemClickListener(mItemClickListener);
         level.setLeftTitle("群等级");
+        revicerAvatarUpdate();
     }
+
+    private void revicerAvatarUpdate() {
+        avatarReceiver = new AvatarReceiver();
+        IntentFilter intentFilter = new IntentFilter("AVATAR");
+        registerReceiver(avatarReceiver,intentFilter);
+    }
+
+
+
+    private class AvatarReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(mAdapter!=null){
+                mAdapter.notifyDataSetChanged();
+            }
+        }
+    }
+
 
 
     @Override
