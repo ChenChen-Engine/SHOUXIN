@@ -112,7 +112,7 @@ public class GroupInfoAdapter extends ArrayAdapter<ECGroupMember> {
             mViewHolder.mivAvatar.setVisibility(View.GONE);
 
         } else {
-            final String headUrl = FriendMessageSqlManager.queryURLByID(item.getVoipAccount());
+            final String headUrl = AvatorUtil.getInstance().getAvatorUrl(item.getVoipAccount());
             if (!TextUtils.isEmpty(headUrl)) {
                 mViewHolder.mAvatar.setVisibility(View.GONE);
                 mViewHolder.mivAvatar.setVisibility(View.VISIBLE);
@@ -130,7 +130,6 @@ public class GroupInfoAdapter extends ArrayAdapter<ECGroupMember> {
                     mViewHolder.mAvatar.setBackgroundResource(R.drawable.memer_bg);
                     mViewHolder.mAvatar.setText(TextUtils.isEmpty(item.getDisplayName()) ?
                             item.getVoipAccount() : item.getDisplayName());
-                    AvatorUtil.getInstance().getAvatorUrl(item.getVoipAccount());
                 }
             }
         }

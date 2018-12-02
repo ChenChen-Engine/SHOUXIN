@@ -695,7 +695,7 @@ public class GagMembesFragment extends LazyFrament {
                 mViewHolder.account.setText(contacts.getContactid());
 
 
-                String headUrl = FriendMessageSqlManager.queryURLByID(contacts.getContactid());
+                String headUrl = AvatorUtil.getInstance().getAvatorUrl(contacts.getContactid());
                 if (!TextUtils.isEmpty(headUrl)) {
                     ImageLoader.getInstance().displayCricleImage(context,headUrl, mViewHolder.mAvatar);
                 } else {
@@ -862,7 +862,7 @@ public class GagMembesFragment extends LazyFrament {
                     mViewHolder.tvRoal.setBackgroundResource(R.drawable.green_rect_bg);
                 }
 
-                String headUrl = FriendMessageSqlManager.queryURLByID(contacts.getContactid());
+                String headUrl = AvatorUtil.getInstance().getAvatorUrl(contacts.getContactid());
                 if (!TextUtils.isEmpty(headUrl)) {
                     ImageLoader.getInstance().displayCricleImage(context,headUrl, mViewHolder.mAvatar);
                 } else {

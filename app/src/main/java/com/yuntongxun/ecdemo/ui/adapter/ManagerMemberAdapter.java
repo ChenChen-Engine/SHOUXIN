@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.yuntongxun.ecdemo.AvatorUtil;
 import com.yuntongxun.ecdemo.ECApplication;
 import com.yuntongxun.ecdemo.R;
 import com.yuntongxun.ecdemo.common.CCPAppManager;
@@ -72,7 +73,7 @@ public class ManagerMemberAdapter extends ArrayAdapter<ECGroupMember> {
             return view;
         }
 
-        String headUrl = FriendMessageSqlManager.queryURLByID(item.getVoipAccount());
+        String headUrl = AvatorUtil.getInstance().getAvatorUrl(item.getVoipAccount());
         if (!TextUtils.isEmpty(headUrl)) {
             mViewHolder.mIvAvatar.setVisibility(View.VISIBLE);
             mViewHolder.tvGagAvatar.setVisibility(View.GONE);

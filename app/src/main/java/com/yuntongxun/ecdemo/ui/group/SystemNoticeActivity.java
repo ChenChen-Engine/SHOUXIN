@@ -24,6 +24,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.yuntongxun.ecdemo.AvatorUtil;
 import com.yuntongxun.ecdemo.R;
 import com.yuntongxun.ecdemo.common.dialog.ECProgressDialog;
 import com.yuntongxun.ecdemo.common.utils.DateUtil;
@@ -204,7 +205,7 @@ public class SystemNoticeActivity extends ECSuperActivity implements
             mViewHolder.sysMsgFrom.setVisibility(View.GONE);
 
             if (!TextUtils.isEmpty(item.getMember())&&item.getDateCreate() <= 0) {//非群组
-                String headUrl = FriendMessageSqlManager.queryURLByID(item.getMember());
+                String headUrl = AvatorUtil.getInstance().getAvatorUrl(item.getMember());
                 if (!TextUtils.isEmpty(headUrl)) {
                     ImageLoader.getInstance().displayCricleImage(context,headUrl, mViewHolder.ImageViewHeader);
                 } else {
