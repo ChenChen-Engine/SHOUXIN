@@ -14,9 +14,11 @@ package com.yuntongxun.ecdemo.ui.chatting;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
@@ -272,6 +274,7 @@ public class ChattingFragment extends CCPFragment implements
     private OnChattingAttachListener mAttachListener;
     private ECHandlerHelper handlerHelper;
     private ECHandlerHelper ecHandlerHelper;
+    private AvatarReceiver avatarReceiver;
 
     @Override
     protected int getLayoutId() {
@@ -325,10 +328,33 @@ public class ChattingFragment extends CCPFragment implements
 
         // 初始化联系人信息
         initActivityState(savedInstanceState);
-
+        revicerAvatarUpdate();
         return contentView;
     }
 
+    private void revicerAvatarUpdate() {
+        avatarReceiver = new AvatarReceiver();
+        IntentFilter intentFilter = new IntentFilter("AVATAR");
+        getActivity().registerReceiver(avatarReceiver,intentFilter);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        if(avatarReceiver!=null){
+            getActivity().unregisterReceiver(avatarReceiver);
+        }
+    }
+
+    private class AvatarReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(mChattingAdapter!=null){
+                mChattingAdapter.notifyDataSetChanged();
+            }
+        }
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override

@@ -16,6 +16,9 @@
     android:id="@id/chatting_avatar_mask"
     style="@style/ChattingUIAvatarMaskTo">
 
+<RelativeLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
     <TextView
         android:id="@+id/chatting_avatar_iv"
         style="@style/ChattingUIAvatarTo"
@@ -27,4 +30,12 @@
         android:textColor="#ffffff"
         android:focusable="false" />
 
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/avatarIV"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        style="@style/ChattingUIAvatarFrom"
+        android:layout_height="wrap_content" />
+
+</RelativeLayout>
 </com.yuntongxun.ecdemo.ui.chatting.view.CCPMaskLayout>

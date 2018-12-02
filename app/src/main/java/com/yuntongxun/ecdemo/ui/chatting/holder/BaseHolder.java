@@ -20,6 +20,8 @@ import android.widget.TextView;
 
 import com.yuntongxun.ecdemo.R;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 
 /**
  * @author 容联•云通讯
@@ -43,6 +45,7 @@ public abstract class BaseHolder {
 	protected CheckBox checkBox;
 
 	protected ImageView uploadState;
+	protected CircleImageView avatarIv;
 	protected View baseView;
 	protected View clickAreaView;
 	protected View chattingMaskView;
@@ -69,6 +72,7 @@ public abstract class BaseHolder {
 		chattingAvatar = (TextView) baseView.findViewById(R.id.chatting_avatar_iv);
 		clickAreaView = baseView.findViewById(R.id.chatting_click_area);
 		uploadState  = (ImageView) baseView.findViewById(R.id.chatting_state_iv);
+		avatarIv  = (CircleImageView) baseView.findViewById(R.id.avatarIV);
 	}
 	
 	/**
@@ -166,4 +170,8 @@ public abstract class BaseHolder {
 
 //	public abstract  TextView getReadTv();
 
+
+	public CircleImageView getAvatarIv() {
+		return avatarIv;
+	}
 }

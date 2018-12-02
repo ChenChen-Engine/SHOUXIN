@@ -16,18 +16,30 @@
     style="@style/ChattingUIAvatarMaskFrom"
     android:focusable="false">
 
-    <TextView
-        android:id="@+id/chatting_avatar_iv"
-        style="@style/ChattingUIAvatarFrom"
-        android:layout_marginRight="2.0dip"
-        android:gravity="center"
-        android:layout_marginTop="2dip"
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="2dip"
         android:layout_marginLeft="2dip"
-        android:lines="2"
-        android:ellipsize="end"
-        android:textColor="#ffffff"
-        android:textSize="10sp"
-        tools:text="2" />
+        android:layout_marginRight="2.0dip"
+        android:layout_marginTop="2dip">
 
+        <TextView
+            android:id="@+id/chatting_avatar_iv"
+            style="@style/ChattingUIAvatarFrom"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:lines="2"
+            android:textColor="#ffffff"
+            android:textSize="10sp"
+            tools:text="2" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/avatarIV"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            style="@style/ChattingUIAvatarFrom"
+            android:layout_height="wrap_content" />
+
+    </RelativeLayout>
 </com.yuntongxun.ecdemo.ui.chatting.view.CCPMaskLayout>

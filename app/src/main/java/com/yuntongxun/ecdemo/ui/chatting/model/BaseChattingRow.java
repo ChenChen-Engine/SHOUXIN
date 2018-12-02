@@ -189,15 +189,9 @@ public abstract class BaseChattingRow implements IChattingRow {
 
         // 处理其他使用逻辑
         buildChattingData(context, baseHolder, detail, position);
-
-        if (((ChattingActivity) context).isPeerChat()
-                && detail.getDirection() == ECMessage.Direction.RECEIVE) {//群主接收方展示群昵称
-            setDisplayName(baseHolder, getGroupNickName(detail));
-        }
-        setDisplayName(baseHolder, getGroupNickName(detail));
-
-        setContactPhoto(context, baseHolder, detail);
-
+        String nickName = getGroupNickName(detail);
+        setDisplayName(baseHolder, nickName);
+        setContactPhoto(context, baseHolder, detail,nickName);
         setContactPhotoClickListener(context, baseHolder, detail);
     }
 
@@ -279,14 +273,18 @@ public abstract class BaseChattingRow implements IChattingRow {
     /**
      * 设置头像昵称等
      */
-    private void setContactPhoto(Context context, final BaseHolder baseHolder, ECMessage detail) {
+    private void setContactPhoto(Context context, final BaseHolder baseHolder, ECMessage detail,String nickName) {
 
         if (baseHolder.getChattingAvatar() != null && detail != null) {
             String receiveAvatorUrl = AvatorUtil.getInstance().getAvatorUrl(detail.getForm());
             String sendAvatorUrl = ECApplication.photoUrl;
             String markName = AvatorUtil.getInstance().getMarkName(detail.getForm());
-            String groupNickName = getGroupNickName(detail);
+            String groupNickName = nickName;
             boolean isGroup = ((ChattingActivity) context).isPeerChat();
+
+
+            baseHolder.getChattingAvatar().setVisibility(View.VISIBLE);
+            baseHolder.getAvatarIv().setVisibility(View.GONE);
 
             if (detail.getDirection() == ECMessage.Direction.SEND) {//发送方
                 if (!TextUtils.isEmpty(sendAvatorUrl)) {
@@ -320,62 +318,11 @@ public abstract class BaseChattingRow implements IChattingRow {
         }
     }
 
-    private void getHead(final BaseHolder baseHolder ,String userid, final boolean isGroup, final String groupNickName, final String markName) {
-        Observer<Object> subscriber = new Observer<Object>() {
-            @Override public void onComplete() {
-                LogUtil.e("onCompleted");
-            }
-            @Override public void onError(Throwable e) {
-                LogUtil.e(e.toString());
-            }
-            @Override public void onSubscribe(Disposable d) { }
-            @Override public void onNext(Object movieEntity) {
-                if (movieEntity != null) {
-                    LogUtil.e(movieEntity.toString());
-                    ResponseBody body = (ResponseBody) movieEntity;
-                    try {
-                        String s = new String(body.bytes());
-                        LogUtil.e("picurl", "" + s);
-                        String error = "";
-                        JSONObject j = new JSONObject(s);
-                        if (j != null && j.has("avatar")) {
-                            String url = j.getString("avatar");
-                            if (!TextUtils.isEmpty(url)) {
-                                displayBg(baseHolder, url);
-                            } else {
-                                if (isGroup) {//群
-                                    baseHolder.getChattingAvatar().setText(groupNickName);
-                                } else {
-                                    baseHolder.getChattingAvatar().setText(markName);
-                                }
-                                baseHolder.getChattingAvatar().setBackgroundResource(R.drawable.bule_circle_bg);
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        };
-        String time = DateUtil.formatNowDate(new Date());
-        String url = SignUtils.getSig(time);
-        JSONObject map = HttpMethods.buildGetPersonPic(userid);
-        RequestBody body = RequestBody.create(MediaType.parse("application/json"), map.toString());
-        HttpMethods.getInstance(time).getPersonPic(subscriber, RestServerDefines.APPKER, url, body);
-    }
-
     private void displayBg(final BaseHolder baseHolder, String url) {
-        Glide.with(CCPAppManager.getContext())
-                .load(url)
-                .asBitmap()
-                .into(new SimpleTarget<Bitmap>() {
-                    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-                    @Override
-                    public void onResourceReady(Bitmap bitmap, GlideAnimation<? super Bitmap> glideAnimation) {
-                        baseHolder.getChattingAvatar().setBackground((new CircleDrawable(bitmap, Color.GRAY, 1)));
-                        baseHolder.getChattingAvatar().setText("");
-                    }
-                });
+        baseHolder.getChattingAvatar().setVisibility(View.GONE);
+        baseHolder.getAvatarIv().setVisibility(View.VISIBLE);
+        Glide.with(CCPAppManager.getContext()).load(url).into(baseHolder.getAvatarIv());
+        baseHolder.getAvatarIv().invalidate();
     }
 
 

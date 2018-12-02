@@ -1,11 +1,13 @@
 package com.yuntongxun.ecdemo;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
+import android.view.textservice.TextInfo;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -14,17 +16,37 @@ import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.yuntongxun.ecdemo.common.CCPAppManager;
 import com.yuntongxun.ecdemo.common.CircleDrawable;
+import com.yuntongxun.ecdemo.common.ExceptionHandler;
+import com.yuntongxun.ecdemo.common.utils.DateUtil;
+import com.yuntongxun.ecdemo.common.utils.DemoUtils;
 import com.yuntongxun.ecdemo.common.utils.ImageLoader;
+import com.yuntongxun.ecdemo.common.utils.LogUtil;
+import com.yuntongxun.ecdemo.common.utils.ToastUtil;
 import com.yuntongxun.ecdemo.pojo.Friend;
 import com.yuntongxun.ecdemo.storage.ContactSqlManager;
 import com.yuntongxun.ecdemo.storage.FriendMessageSqlManager;
 import com.yuntongxun.ecdemo.storage.GroupMemberSqlManager;
+import com.yuntongxun.ecdemo.ui.RestServerDefines;
 import com.yuntongxun.ecdemo.ui.contact.ECContacts;
+import com.yuntongxun.ecdemo.ui.phonemodel.HttpMethods;
 
+
+import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 
 import static com.tencent.bugly.crashreport.inner.InnerAPI.context;
+import static com.yuntongxun.ecdemo.ui.chatting.IMChattingHelper.INTENT_ACTION_CHAT_USER_STATE;
+import static com.yuntongxun.ecdemo.utils.SignUtils.getSig;
 
 /**
  * Created by smileklvens on 2017/10/19.
@@ -118,7 +140,7 @@ public class AvatorUtil {
 
 
     public String getAvatorUrl(String phone) {
-        String headUrl;
+        String headUrl = "";
         if (TextUtils.isEmpty(phone)) {
             headUrl = "";
         }
@@ -127,7 +149,57 @@ public class AvatorUtil {
         } else {//好友表
             headUrl = FriendMessageSqlManager.queryURLByID(phone);
         }
+        if(TextUtils.isEmpty(headMap.get(phone)) && TextUtils.isEmpty(headUrl)){
+            getFriendInfo(phone);
+        }
         return headUrl;
+    }
+
+    private static HashMap<String,String> headMap = new HashMap<>();
+
+    private void getFriendInfo(final String friendId) {
+        headMap.put(friendId,"true");
+        Observer<Object> subscriber = new Observer<Object>() {
+            @Override
+            public void onComplete() {
+                LogUtil.e("onCompleted");
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                LogUtil.e(e.toString());
+            }
+
+            @Override
+            public void onSubscribe(Disposable d) {
+            }
+
+            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+            @Override
+            public void onNext(Object movieEntity) {
+                if (movieEntity != null) {
+                    LogUtil.e(movieEntity.toString());
+                    ResponseBody body = (ResponseBody) movieEntity;
+                    try {
+                        String s = new String(body.bytes());
+                        ExceptionHandler.logHttpResp(s);
+                        if (DemoUtils.isTrue(s)) {
+                            Friend friend = DemoUtils.getFriendInfo(s);
+                            FriendMessageSqlManager.insertOrUpdateFriendByUserId(friendId, friend.getNickName()
+                                    , friend.getFriendState(), friend.getAvatar(), friend.getRemarkName());
+                            ECApplication.getInstance().sendBroadcast(new Intent("AVATAR"));
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+        String time = DateUtil.formatNowDate(new Date());
+        String url = getSig(time);
+        JSONObject map = HttpMethods.buildGetFriendInfo(CCPAppManager.getUserId(), friendId);
+        RequestBody body = RequestBody.create(MediaType.parse("application/json"), map.toString());
+        HttpMethods.getInstance(time).getPersonInfo(subscriber, RestServerDefines.APPKER, url, body);
     }
 
 
