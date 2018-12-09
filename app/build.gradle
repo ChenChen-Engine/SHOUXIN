@@ -116,7 +116,6 @@ dependencies {
     implementation(name: 'bqmm', ext: 'aar')
     implementation(name: 'redpacket', ext: 'aar')
     implementation 'com.tencent.wcdb:wcdb-android:1.0.0'
-    implementation project(':rxandroid')
     implementation 'com.android.support:multidex:1.0.0'
     implementation('com.alibaba.android:vlayout:1.0.5@aar') {
         transitive = true
@@ -135,5 +134,7 @@ dependencies {
     implementation 'com.tencent.tinker:tinker-android-lib:1.9.6'
     //蒲公英
     implementation 'com.pgyersdk:sdk:3.0.2'
-    implementation 'cn.finalteam.rxgalleryfinal:library:1.0.9'
+    implementation('cn.finalteam.rxgalleryfinal:library:1.0.9') {
+        exclude group: 'io.reactivex.android'
+    }
 }

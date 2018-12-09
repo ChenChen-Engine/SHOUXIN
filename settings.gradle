@@ -1,1 +1,1 @@
-include ':app',  'vitamio', ':rxandroid','redpacketlibrary','BQMM_Lib'
+include ':app',  'vitamio','redpacketlibrary','BQMM_Lib'
