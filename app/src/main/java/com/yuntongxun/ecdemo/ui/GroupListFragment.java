@@ -206,6 +206,9 @@ public class GroupListFragment extends BaseFrament implements GroupService.Callb
                 String head = SPUtils.getHead(group.getGroupId());
                 if(!TextUtils.isEmpty(head)){
                     ImageLoader.getInstance().displayCricleImage(mContext,head,mViewHolder.groupitem_avatar_iv);
+                }else if(TextUtils.isEmpty(head)){
+                    mViewHolder.groupitem_avatar_iv.setImageResource(drawabs[new Random().nextInt(drawabs.length)]);
+                    GroupService.syncGroupInfo(group.getGroupId());
                 }else{
                     mViewHolder.groupitem_avatar_iv.setImageResource(drawabs[new Random().nextInt(drawabs.length)]);
                 }
