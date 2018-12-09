@@ -30,7 +30,9 @@ import com.yuntongxun.ecdemo.common.utils.DateUtil;
 import com.yuntongxun.ecdemo.common.utils.DemoUtils;
 import com.yuntongxun.ecdemo.common.utils.ECPreferenceSettings;
 import com.yuntongxun.ecdemo.common.utils.ECPreferences;
+import com.yuntongxun.ecdemo.common.utils.ImageLoader;
 import com.yuntongxun.ecdemo.common.utils.ResourceHelper;
+import com.yuntongxun.ecdemo.net.utils.SPUtils;
 import com.yuntongxun.ecdemo.storage.ConversationSqlManager;
 import com.yuntongxun.ecdemo.storage.GroupNoticeSqlManager;
 import com.yuntongxun.ecdemo.storage.GroupSqlManager;
@@ -38,6 +40,7 @@ import com.yuntongxun.ecdemo.ui.chatting.base.EmojiconTextView;
 import com.yuntongxun.ecdemo.ui.chatting.model.Conversation;
 import com.yuntongxun.ecdemo.ui.contact.ContactLogic;
 import com.yuntongxun.ecdemo.ui.group.GroupNoticeHelper;
+import com.yuntongxun.ecdemo.ui.group.GroupService;
 import com.yuntongxun.ecsdk.ECMessage;
 import com.yuntongxun.ecsdk.im.ECGroup;
 
@@ -220,8 +223,18 @@ public class ConversationAdapter extends CCPListAdapter<Conversation> {
             mViewHolder.image_input_text.setVisibility(View.GONE);
             mViewHolder.update_time_tv.setText(getConversationTime(conversation));
             if (isPeerChat(conversation.getSessionId())) {//群组
-                mViewHolder.user_avatar.setImageResource(R.drawable.message_icon_qunzu);
                 ECGroup ecGroup = GroupSqlManager.getECGroup(conversation.getSessionId());
+                String head = SPUtils.getHead(ecGroup.getGroupId());
+                if(!TextUtils.isEmpty(head)){
+                    ImageLoader.getInstance().displayCricleImage(mContext,head,mViewHolder.user_avatar);
+                }
+                else if(TextUtils.isEmpty(ecGroup.getGroupDomain())){
+                    mViewHolder.user_avatar.setImageResource(R.drawable.message_icon_qunzu);
+                    GroupService.syncGroupInfo(ecGroup.getGroupId());
+                }
+                else{
+                    mViewHolder.user_avatar.setImageResource(R.drawable.message_icon_qunzu);
+                }
                 if (ecGroup != null) {
                     mViewHolder.nickname_tv.setText(ecGroup.getName());
                 } else {

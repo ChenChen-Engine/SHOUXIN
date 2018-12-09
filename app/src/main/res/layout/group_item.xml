@@ -13,7 +13,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     style="@style/CCPGroupListItem">
 
-    <ImageView
+    <com.yuntongxun.ecdemo.ui.livechatroom.CircleImageView
         android:id="@+id/groupitem_avatar_iv"
         android:layout_width="@dimen/NormalAvatarSize"
         android:layout_height="@dimen/NormalAvatarSize"

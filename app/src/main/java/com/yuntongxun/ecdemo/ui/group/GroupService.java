@@ -13,11 +13,13 @@
 package com.yuntongxun.ecdemo.ui.group;
 
 import android.content.Intent;
+import android.text.TextUtils;
 
 import com.yuntongxun.ecdemo.common.CCPAppManager;
 import com.yuntongxun.ecdemo.common.utils.DemoUtils;
 import com.yuntongxun.ecdemo.common.utils.LogUtil;
 import com.yuntongxun.ecdemo.common.utils.ToastUtil;
+import com.yuntongxun.ecdemo.net.utils.SPUtils;
 import com.yuntongxun.ecdemo.storage.ContactSqlManager;
 import com.yuntongxun.ecdemo.storage.GroupMemberSqlManager;
 import com.yuntongxun.ecdemo.storage.GroupSqlManager;
@@ -209,6 +211,9 @@ public class GroupService {
                     }
 
                     GroupSqlManager.updateGroup(group);
+                    if(!TextUtils.isEmpty(group.getGroupDomain())){
+                        SPUtils.putHead(group.getGroupId(),group.getGroupDomain());
+                    }
                     if (getInstance().mCallback != null) {
                         getInstance().mCallback.onSyncGroupInfo(groupId);
                     }

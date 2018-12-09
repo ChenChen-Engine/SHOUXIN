@@ -16,7 +16,6 @@ package com.yuntongxun.ecdemo.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -30,10 +29,11 @@ import android.widget.TextView;
 import com.yuntongxun.ecdemo.R;
 import com.yuntongxun.ecdemo.common.CCPAppManager;
 import com.yuntongxun.ecdemo.common.utils.DemoUtils;
+import com.yuntongxun.ecdemo.common.utils.ImageLoader;
+import com.yuntongxun.ecdemo.net.utils.SPUtils;
 import com.yuntongxun.ecdemo.storage.GroupSqlManager;
 import com.yuntongxun.ecdemo.storage.IMessageSqlManager;
 import com.yuntongxun.ecdemo.ui.chatting.base.EmojiconTextView;
-import com.yuntongxun.ecdemo.ui.contact.ContactLogic;
 import com.yuntongxun.ecdemo.ui.group.ApplyWithGroupPermissionActivity;
 import com.yuntongxun.ecdemo.ui.group.DemoGroup;
 import com.yuntongxun.ecdemo.ui.group.GroupInfoActivity;
@@ -43,8 +43,6 @@ import com.yuntongxun.ecsdk.ECError;
 import java.util.Random;
 
 import butterknife.BindView;
-
-import static android.R.attr.max;
 
 
 /**
@@ -205,8 +203,12 @@ public class GroupListFragment extends BaseFrament implements GroupService.Callb
 
             DemoGroup group = getItem(position);
             if (group != null) {
-
-                mViewHolder.groupitem_avatar_iv.setImageResource(drawabs[new Random().nextInt(drawabs.length)]);
+                String head = SPUtils.getHead(group.getGroupId());
+                if(!TextUtils.isEmpty(head)){
+                    ImageLoader.getInstance().displayCricleImage(mContext,head,mViewHolder.groupitem_avatar_iv);
+                }else{
+                    mViewHolder.groupitem_avatar_iv.setImageResource(drawabs[new Random().nextInt(drawabs.length)]);
+                }
                 mViewHolder.group_name.setText(TextUtils.isEmpty(group.getName()) ? group.getGroupId() : group.getName());
                 mViewHolder.group_id.setText(getString(R.string.str_group_id_fmt, DemoUtils.getGroupShortId(group.getGroupId())));
 //                mViewHolder.join_state.setText(group.isJoin() ? "已加入" : "");

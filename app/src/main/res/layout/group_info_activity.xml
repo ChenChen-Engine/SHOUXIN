@@ -112,6 +112,15 @@
                 android:layout_height="43dp"
                 android:background="@color/white"></com.yuntongxun.ecdemo.common.view.InfoItem>
 
+            <include layout="@layout/include_black_line" />
+
+            <com.yuntongxun.ecdemo.common.view.InfoItem
+                android:id="@+id/avatar"
+                android:layout_width="match_parent"
+                android:layout_height="43dp"
+                android:visibility="gone"
+                android:background="@color/white"></com.yuntongxun.ecdemo.common.view.InfoItem>
+
 
             <com.yuntongxun.ecdemo.common.view.SettingItem
                 android:id="@+id/info_msg_notify"

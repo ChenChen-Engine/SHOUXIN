@@ -27,11 +27,13 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.google.zxing.WriterException;
 import com.google.zxing.client.android.encode.QRCodeEncoder;
 import com.yuntongxun.ecdemo.R;
 import com.yuntongxun.ecdemo.bean.GetGroupLevelBean;
+import com.yuntongxun.ecdemo.bean.UpdateHeadBean;
 import com.yuntongxun.ecdemo.common.CCPAppManager;
 import com.yuntongxun.ecdemo.common.dialog.ECAlertDialog;
 import com.yuntongxun.ecdemo.common.dialog.ECListDialog;
@@ -48,8 +50,11 @@ import com.yuntongxun.ecdemo.common.view.SettingItem;
 import com.yuntongxun.ecdemo.common.view.TitleBar;
 import com.yuntongxun.ecdemo.common.view.WrapGridView;
 import com.yuntongxun.ecdemo.exception.ECEncoderQrException;
+import com.yuntongxun.ecdemo.net.Api;
 import com.yuntongxun.ecdemo.net.BaseObserver;
 import com.yuntongxun.ecdemo.net.Net;
+import com.yuntongxun.ecdemo.net.RetrofitClient;
+import com.yuntongxun.ecdemo.net.utils.SPUtils;
 import com.yuntongxun.ecdemo.storage.ContactSqlManager;
 import com.yuntongxun.ecdemo.storage.ConversationSqlManager;
 import com.yuntongxun.ecdemo.storage.GroupMemberSqlManager;
@@ -57,7 +62,6 @@ import com.yuntongxun.ecdemo.storage.GroupSqlManager;
 import com.yuntongxun.ecdemo.storage.IMessageSqlManager;
 import com.yuntongxun.ecdemo.ui.adapter.GroupInfoAdapter;
 import com.yuntongxun.ecdemo.ui.chatting.ChattingActivity;
-import com.yuntongxun.ecdemo.ui.chatting.ChattingFragment;
 import com.yuntongxun.ecdemo.ui.chatting.IMChattingHelper;
 import com.yuntongxun.ecdemo.ui.contact.ContactDetailActivity;
 import com.yuntongxun.ecdemo.ui.contact.ECContacts;
@@ -77,15 +81,24 @@ import com.yuntongxun.ecsdk.platformtools.ECHandlerHelper;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.InvalidClassException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.OnClick;
+import cn.finalteam.rxgalleryfinal.RxGalleryFinalApi;
+import cn.finalteam.rxgalleryfinal.rxbus.RxBusResultDisposable;
+import cn.finalteam.rxgalleryfinal.rxbus.event.ImageRadioResultEvent;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 
 import static com.yuntongxun.ecdemo.storage.IMessageSqlManager.ACTION_GROUP_CHANGED;
 import static com.yuntongxun.ecdemo.ui.chatting.IMChattingHelper.ACTION_TRANS_OWNER;
@@ -134,6 +147,8 @@ public class GroupInfoActivity extends BaseGroupReceiveAct implements GroupMembe
     SettingItem clearMsg;
     @BindView(R.id.level)
     InfoItem level;
+    @BindView(R.id.avatar)
+    InfoItem avatar;
     @BindView(R.id.btn_group_quit)
     Button btnGroupQuit;
     @BindView(R.id.info_content)
@@ -361,6 +376,10 @@ public class GroupInfoActivity extends BaseGroupReceiveAct implements GroupMembe
         mAdapter = new GroupInfoAdapter(this, isLocalDiscussion, mGroup);
         gvMember.setAdapter(mAdapter);
         gvMember.setOnItemClickListener(mItemClickListener);
+        if(isCreat()){
+            avatar.setVisibility(View.VISIBLE);
+            avatar.setLeftTitle("设置群头像");
+        }
         level.setLeftTitle("群等级");
         revicerAvatarUpdate();
     }
@@ -575,7 +594,6 @@ public class GroupInfoActivity extends BaseGroupReceiveAct implements GroupMembe
                 ToastUtil.showMessage("设置失败");
             }
         }
-
     }
 
     private void doModifyGroup() {
@@ -809,7 +827,7 @@ public class GroupInfoActivity extends BaseGroupReceiveAct implements GroupMembe
 
     @OnClick({R.id.info_count, R.id.name, R.id.qr, R.id.notice, R.id.card
             , R.id.info_dissolve, R.id.info_trans_owner, R.id.clear_msg
-            , R.id.btn_group_quit, R.id.gag, R.id.set_manager})
+            , R.id.btn_group_quit, R.id.gag, R.id.set_manager,R.id.avatar})
     public void onViewClicked(View view) {
 
         switch (view.getId()) {
@@ -926,8 +944,78 @@ public class GroupInfoActivity extends BaseGroupReceiveAct implements GroupMembe
                 startActivityForResult(memntent, RQ_TRANS_OWNER);
 
                 break;
+            case R.id.avatar:   //群头像
+//                GetImageUtils.showImagePickDialog(this, null, avatar);
+                //快速打开单选图片,flag使用true不裁剪
+                RxGalleryFinalApi
+                        .openRadioSelectImage(GroupInfoActivity.this, new RxBusResultDisposable<ImageRadioResultEvent>() {
+                            @Override
+                            protected void onEvent(ImageRadioResultEvent o) throws Exception {
+                                System.out.println(o);
+                                if(o!=null && o.getResult()!=null){
+                                    if(!TextUtils.isEmpty(o.getResult().getThumbnailBigPath())){
+                                        photohandler(o.getResult().getThumbnailBigPath());
+                                    }
+                                    else  if(!TextUtils.isEmpty(o.getResult().getOriginalPath())){
+                                        photohandler(o.getResult().getOriginalPath());
+                                    }
+                                    else{
+                                        Toast.makeText(GroupInfoActivity.this, "请重新选择图片!", Toast.LENGTH_SHORT).show();
+                                    }
+                                }else{
+                                    Toast.makeText(GroupInfoActivity.this, "请重新选择图片!", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        }, true);
+                break;
 
         }
+    }
+
+    /**
+     * 图片上传
+     * @param path
+     */
+    private void photohandler(String path) {
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("group_id",mGroup.getGroupId());
+        File file = new File(path);
+        RequestBody requestFile = RequestBody.create(MediaType.parse("image/jpeg"), file);
+        MultipartBody.Part body = MultipartBody.Part.createFormData("FILES", "GROUPPHOTO", requestFile);
+        showProcessDialog("please whting order");
+
+        RetrofitClient.request(RetrofitClient.create(Api.class).uploadGroupPicture(map, body), new BaseObserver<UpdateHeadBean>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(UpdateHeadBean value) {
+                dismissPostingDialog();
+                try {
+                    if(value!=null && !TextUtils.isEmpty(value.getImage_url())){
+                        JSONObject json = new JSONObject();
+                        String s = json.put("protrait",value.getImage_url()).toString();
+                        mGroup.setGroupDomain(s);
+                        SPUtils.putHead(mGroup.getGroupId(),s);
+                        GroupService.modifyGroup(mGroup);
+                        Toast.makeText(GroupInfoActivity.this, "上传成功，请稍等片刻!", Toast.LENGTH_SHORT).show();
+                    }else{
+                        if(value!=null){
+                            Toast.makeText(GroupInfoActivity.this, value.getMsg(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                } catch (JSONException e) {
+                    Toast.makeText(GroupInfoActivity.this, "请重新选择图片!", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                dismissPostingDialog();
+            }
+        });
     }
 
     private void doOwnerQuitGroup() {
