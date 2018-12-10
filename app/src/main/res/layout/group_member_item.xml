@@ -36,5 +36,15 @@
         android:layout_height="40dp"
         />
 
+    <TextView
+        android:id="@+id/groupManagerTv"
+        android:gravity="center"
+        android:layout_gravity="bottom"
+        android:textSize="8sp"
+        android:visibility="gone"
+        android:textColor="@color/white"
+        android:background="@drawable/shape_group_info_grid_black"
+        android:layout_width="40dp"
+        android:layout_height="12dp" />
 
 </FrameLayout>

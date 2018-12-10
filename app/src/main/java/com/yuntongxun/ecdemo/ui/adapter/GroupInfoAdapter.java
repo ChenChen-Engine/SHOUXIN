@@ -90,6 +90,7 @@ public class GroupInfoAdapter extends ArrayAdapter<ECGroupMember> {
             mViewHolder = new ViewHolder();
             mViewHolder.mAvatar = (TextView) view.findViewById(R.id.group_card_item_avatar_iv);
             mViewHolder.mivAvatar = (ImageView) view.findViewById(R.id.iv_avatar);
+            mViewHolder.groupManagerTv = (TextView) view.findViewById(R.id.groupManagerTv);
 
 
             view.setTag(mViewHolder);
@@ -102,6 +103,17 @@ public class GroupInfoAdapter extends ArrayAdapter<ECGroupMember> {
         if (item == null) {
             return view;
         }
+
+        if(item.getMemberRole() == ECGroupMember.Role.OWNER){
+            mViewHolder.groupManagerTv.setVisibility(View.VISIBLE);
+            mViewHolder.groupManagerTv.setText("群主");
+        }else if(item.getMemberRole() == ECGroupMember.Role.MANAGER){
+            mViewHolder.groupManagerTv.setVisibility(View.VISIBLE);
+            mViewHolder.groupManagerTv.setText("管理");
+        }else if(item.getMemberRole() == ECGroupMember.Role.MEMBER){
+            mViewHolder.groupManagerTv.setVisibility(View.GONE);
+        }
+
         if (item.getVoipAccount().equals("add@yuntongxun.com")) {
             mViewHolder.mAvatar.setVisibility(View.VISIBLE);
             mViewHolder.mAvatar.setBackgroundResource(R.drawable.qunzusetting_icon_add);
@@ -145,6 +157,8 @@ public class GroupInfoAdapter extends ArrayAdapter<ECGroupMember> {
 
 
         ImageView mivAvatar;
+
+        TextView groupManagerTv;
     }
 
 }
