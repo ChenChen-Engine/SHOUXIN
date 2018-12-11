@@ -43,6 +43,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AbsListView;
@@ -275,6 +276,8 @@ public class ChattingFragment extends CCPFragment implements
     private ECHandlerHelper handlerHelper;
     private ECHandlerHelper ecHandlerHelper;
     private AvatarReceiver avatarReceiver;
+    private int firstVisibleItemIndex = 0;
+    private int firstTop = 0;
 
     @Override
     protected int getLayoutId() {
@@ -722,8 +725,12 @@ public class ChattingFragment extends CCPFragment implements
     public void onScroll(AbsListView view, int firstVisibleItem,
                          int visibleItemCount, int totalItemCount) {
 
+        firstVisibleItemIndex = firstVisibleItem;
+        View childView = mListView.getChildAt(0);
+        firstTop = childView==null?0:childView.getTop();
+
         LogUtil.d(TAG, "[onScroll] firstVisibleItem :" + firstVisibleItem + " ,visibleItemCount:" + visibleItemCount + " ,totalItemCount:" + totalItemCount);
-        isViewMode = !((firstVisibleItem + visibleItemCount) == totalItemCount);
+        isViewMode = !((firstVisibleItem + visibleItemCount) >= totalItemCount);
         if (mECPullDownView != null) {
             if (!mChattingAdapter.isLimitCount()) {
                 mECPullDownView.setIsCloseTopAllowRefersh(false);
@@ -1624,6 +1631,11 @@ public class ChattingFragment extends CCPFragment implements
         // 当前是否正在查看消息
         if (!isViewMode) {
             mListView.setSelection(mListView.getCount() - 1);
+        }else{
+            if(firstVisibleItemIndex + 15 <=mListView.getCount()){
+                firstVisibleItemIndex--;
+                mListView.setSelectionFromTop(firstVisibleItemIndex,firstTop);
+            }
         }
 
         setChattingSessionRead();
