@@ -225,6 +225,13 @@
             ecdemo:item_titleText="@string/settings_exit_title" />
 
         <com.yuntongxun.ecdemo.common.view.SettingItem
+            android:id="@+id/changePasswordSettings"
+            style="@style/settings_item_layout_single"
+            android:layout_marginTop="10dp"
+            ecdemo:item_showDivider="true"
+            ecdemo:item_titleText="修改密码" />
+
+        <com.yuntongxun.ecdemo.common.view.SettingItem
             android:id="@+id/setting_switch"
             style="@style/settings_item_layout_single"
             android:layout_marginTop="@dimen/LargerPadding"

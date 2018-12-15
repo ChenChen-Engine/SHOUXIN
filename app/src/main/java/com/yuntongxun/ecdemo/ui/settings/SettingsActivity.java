@@ -44,6 +44,7 @@ import com.yuntongxun.ecdemo.core.ClientUser;
 import com.yuntongxun.ecdemo.storage.ContactSqlManager;
 import com.yuntongxun.ecdemo.ui.ECSuperActivity;
 import com.yuntongxun.ecdemo.ui.SDKCoreHelper;
+import com.yuntongxun.ecdemo.ui.activity.ChangePasswordActivity;
 import com.yuntongxun.ecdemo.ui.activity.LoginActivity;
 import com.yuntongxun.ecdemo.ui.chatting.IMChattingHelper;
 import com.yuntongxun.ecdemo.ui.chatting.base.EmojiconTextView;
@@ -245,6 +246,13 @@ public class SettingsActivity extends ECSuperActivity implements View.OnClickLis
         zhubo =(SettingItem)findViewById(R.id.settings_tui);
         zhubo.setOnClickListener(this);
         zhubo.setVisibility(View.GONE);
+
+        findViewById(R.id.changePasswordSettings).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(SettingsActivity.this,ChangePasswordActivity.class));
+            }
+        });
 
 
          qunzong=(SettingItem)findViewById(R.id.settings_kan);

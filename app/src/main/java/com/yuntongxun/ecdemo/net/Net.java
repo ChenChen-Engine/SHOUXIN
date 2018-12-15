@@ -1,5 +1,6 @@
 package com.yuntongxun.ecdemo.net;
 
+import com.yuntongxun.ecdemo.bean.ChangePasswordBean;
 import com.yuntongxun.ecdemo.bean.CheckRegisterBean;
 import com.yuntongxun.ecdemo.bean.CreateGroupBean;
 import com.yuntongxun.ecdemo.bean.ForgetBean;
@@ -10,7 +11,10 @@ import com.yuntongxun.ecdemo.bean.ResetNickNameBean;
 import com.yuntongxun.ecdemo.bean.VerifyCodeBean;
 import com.yuntongxun.ecdemo.utils.MD5Util;
 
+import java.util.HashMap;
 import java.util.Map;
+
+import io.reactivex.disposables.Disposable;
 
 public class Net {
 
@@ -87,6 +91,15 @@ public class Net {
                 .put("isopen", isopen)
                 .build();
         RetrofitClient.request(RetrofitClient.create(Api.class).getGroupLevel(build), observer);
+    }
+
+    public static void changePassword(String phone,String oldPwd,String newPwd,BaseObserver<ChangePasswordBean> observer){
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("phone",phone);
+        map.put("old_password",oldPwd);
+        map.put("new_password",newPwd);
+
+        RetrofitClient.request(RetrofitClient.create(Api.class).changePassword(map), observer);
     }
 
     private static String sign(String phone) {

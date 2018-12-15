@@ -1,5 +1,6 @@
 package com.yuntongxun.ecdemo.net;
 
+import com.yuntongxun.ecdemo.bean.ChangePasswordBean;
 import com.yuntongxun.ecdemo.bean.CheckRegisterBean;
 import com.yuntongxun.ecdemo.bean.CreateGroupBean;
 import com.yuntongxun.ecdemo.bean.ForgetBean;
@@ -74,4 +75,8 @@ public interface Api {
     @POST("upload-litpic")
     Observable<UpdateHeadBean> uploadGroupPicture(@QueryMap Map<String,Object> map , @Part MultipartBody.Part file);
 
+    /*获取群等级*/
+    @POST("change-password")
+    @FormUrlEncoded
+    Observable<ChangePasswordBean> changePassword(@FieldMap Map<String, Object> map);
 }
