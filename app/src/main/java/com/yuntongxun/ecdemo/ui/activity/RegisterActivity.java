@@ -289,6 +289,7 @@ public class RegisterActivity extends ECSuperActivity implements View.OnClickLis
                 if (registerBean.getStatusCode() == 0) {
                     /*用守信号登录*/
                     loginScueess(sxNum, pwd);
+                    SPUtils.savePhone(phone);
                 } else {
                     ToastUtil.showMessage(registerBean.getStatusMsg());
                 }
@@ -406,7 +407,6 @@ public class RegisterActivity extends ECSuperActivity implements View.OnClickLis
         mPostingdialog.show();
 
         SDKCoreHelper.init(this, ECInitParams.LoginMode.FORCE_LOGIN);
-        SPUtils.savePhone(phone);
     }
 
     @Override

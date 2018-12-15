@@ -253,6 +253,7 @@ public class LoginActivity extends ECSuperActivity implements View.OnClickListen
                 if (bean != null && bean.getData() != null) {
                     databean = bean.getData();
                     loginScueess(bean.getData().getShouxin(), pwd);
+                    SPUtils.savePhone(bean.getData().getPhone());
                 } else {
                     ToastUtil.showMessage(bean.getStatusMsg());
                 }
@@ -283,7 +284,6 @@ public class LoginActivity extends ECSuperActivity implements View.OnClickListen
         clientUser.setPassword(pwd);
         CCPAppManager.setClientUser(clientUser);
         SDKCoreHelper.init(this, ECInitParams.LoginMode.FORCE_LOGIN);
-        SPUtils.savePhone(phone);
     }
 
     @Override
