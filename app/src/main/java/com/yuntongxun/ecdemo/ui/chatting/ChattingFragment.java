@@ -1632,7 +1632,8 @@ public class ChattingFragment extends CCPFragment implements
         if (!isViewMode) {
             mListView.setSelection(mListView.getCount() - 1);
         }else{
-            if(firstVisibleItemIndex + 15 <=mListView.getCount()){
+
+            if(firstVisibleItemIndex + 10 <=mListView.getCount()){
                 firstVisibleItemIndex--;
                 mListView.setSelectionFromTop(firstVisibleItemIndex,firstTop);
             }
