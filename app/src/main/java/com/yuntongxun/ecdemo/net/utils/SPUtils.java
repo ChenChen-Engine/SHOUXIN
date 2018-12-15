@@ -51,4 +51,12 @@ public class SPUtils {
             return head;
         }
     }
+
+    public static void savePhone(String phone){
+        sp.edit().putString("UserPhone",phone).commit();
+    }
+
+    public static String getPhone(){
+        return sp.getString("UserPhone","");
+    }
 }

@@ -26,6 +26,7 @@ import com.yuntongxun.ecdemo.core.ClientUser;
 import com.yuntongxun.ecdemo.core.ContactsCache;
 import com.yuntongxun.ecdemo.net.BaseObserver;
 import com.yuntongxun.ecdemo.net.Net;
+import com.yuntongxun.ecdemo.net.utils.SPUtils;
 import com.yuntongxun.ecdemo.storage.ContactSqlManager;
 import com.yuntongxun.ecdemo.ui.ECSuperActivity;
 import com.yuntongxun.ecdemo.ui.MainAct;
@@ -282,7 +283,7 @@ public class LoginActivity extends ECSuperActivity implements View.OnClickListen
         clientUser.setPassword(pwd);
         CCPAppManager.setClientUser(clientUser);
         SDKCoreHelper.init(this, ECInitParams.LoginMode.FORCE_LOGIN);
-
+        SPUtils.savePhone(phone);
     }
 
     @Override

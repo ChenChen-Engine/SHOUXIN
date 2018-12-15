@@ -18,6 +18,7 @@ import com.yuntongxun.ecdemo.common.utils.LogUtil;
 import com.yuntongxun.ecdemo.common.utils.SharedPreferencesUtils;
 import com.yuntongxun.ecdemo.common.utils.ToastUtil;
 import com.yuntongxun.ecdemo.core.ClientUser;
+import com.yuntongxun.ecdemo.net.utils.SPUtils;
 import com.yuntongxun.ecdemo.storage.ContactSqlManager;
 import com.yuntongxun.ecdemo.storage.ConversationSqlManager;
 import com.yuntongxun.ecdemo.storage.GroupMemberSqlManager;
@@ -287,6 +288,7 @@ public class SDKCoreHelper implements ECDevice.InitListener , ECDevice.OnECDevic
 
     @Override
     public void onLogout() {
+        SPUtils.savePhone("");
         getInstance().mConnect = ECDevice.ECConnectState.CONNECT_FAILED;
         if(mInitParams != null && mInitParams.getInitParams() != null) {
             mInitParams.getInitParams().clear();
