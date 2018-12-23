@@ -108,7 +108,7 @@ public class PustDemoActivity extends ECSuperActivity implements View.OnClickLis
 
                     // 获取客户端AccessToken,获取之前请先确定该应用（包名）已经在开发者联盟上创建成功，并申请、审核通过Push权益
                     // 该测试应用已经注册过
-                    PushManager.requestToken(PustDemoActivity.this);
+//                    PushManager.requestToken(PustDemoActivity.this);
 
                     Log.i(TAG, "try to get Token ,current packageName is " + PustDemoActivity.this.getPackageName());
 

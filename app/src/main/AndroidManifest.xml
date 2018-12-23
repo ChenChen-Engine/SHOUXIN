@@ -15,6 +15,7 @@
         android:protectionLevel="normal" />
     <permission android:name="com.yuntongxun.eckuailiao.permission.INCOMING_CALL" />
     // 接收 SDK 消息广播权限， 第三方 APP 接入时，请将 com.yuntongxun.ecdemo 替换为自己的包名
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
     <uses-permission android:name="com.yuntongxun.eckuailiao.permission.RECEIVE_MSG" />
     // 如果没有VOIP功能可以忽略
     <uses-permission android:name="com.yuntongxun.eckuailiao.permission.INCOMING_CALL" />

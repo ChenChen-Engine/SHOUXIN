@@ -1,6 +1,7 @@
 
 package com.yuntongxun.ecdemo.ui;
 
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -47,6 +48,7 @@ import com.yuntongxun.ecdemo.core.ContactsCache;
 import com.yuntongxun.ecdemo.net.UpdateDialog;
 import com.yuntongxun.ecdemo.pojo.Friend;
 import com.yuntongxun.ecdemo.pojo.FsRobot;
+import com.yuntongxun.ecdemo.service.YuntxNotifyReceiver;
 import com.yuntongxun.ecdemo.storage.ContactSqlManager;
 import com.yuntongxun.ecdemo.storage.ConversationSqlManager;
 import com.yuntongxun.ecdemo.storage.FriendMessageSqlManager;
@@ -58,6 +60,7 @@ import com.yuntongxun.ecdemo.ui.personcenter.PersonInfoUI;
 import com.yuntongxun.ecdemo.ui.phonemodel.HttpMethods;
 import com.yuntongxun.ecdemo.ui.phonemodel.PhoneUI;
 import com.yuntongxun.ecsdk.ECChatManager;
+import com.yuntongxun.ecsdk.ECClientService;
 import com.yuntongxun.ecsdk.ECDevice;
 import com.yuntongxun.ecsdk.ECError;
 import com.yuntongxun.ecsdk.SdkErrorCode;
@@ -582,8 +585,13 @@ public class MainAct extends BaseActivity implements ConversationListFragment.On
 
     @Override
     public void onBackPressed() {
-
-        moveTaskToBack(true);
+        stopService(new Intent(this,ECClientService.class));
+        stopService(new Intent(this,ECClientService.InnerService.class));
+        stopService(new Intent(this,YuntxNotifyReceiver.NotifyService.class));
+        System.exit(0);
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        manager.killBackgroundProcesses(getPackageName());
+//        moveTaskToBack(true);
     }
 
     @Override

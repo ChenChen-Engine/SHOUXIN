@@ -20,6 +20,7 @@ import android.support.multidex.MultiDex;
 import android.text.TextUtils;
 
 import com.baidu.mapapi.SDKInitializer;
+import com.bumptech.glide.load.model.GlideUrl;
 import com.nostra13.universalimageloader.cache.disc.impl.UnlimitedDiscCache;
 import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -33,6 +34,7 @@ import com.yuntongxun.ecdemo.common.CCPAppManager;
 import com.yuntongxun.ecdemo.common.utils.ECPreferenceSettings;
 import com.yuntongxun.ecdemo.common.utils.ECPreferences;
 import com.yuntongxun.ecdemo.common.utils.FileAccessor;
+import com.yuntongxun.ecdemo.common.utils.GlideCacheUtil;
 import com.yuntongxun.ecdemo.common.utils.LogUtil;
 import com.yuntongxun.ecdemo.ui.huawei.PustDemoActivity;
 import com.yuntongxun.ecdemo.ui.xiaomi.DemoMessageReceiver;
@@ -96,11 +98,12 @@ public class ECApplication extends Application {
         setChattingContactId();
         initImageLoader();
         if (shouldInit()) {
-            MiPushClient.registerPush(this, APP_ID, APP_KEY);
+//            MiPushClient.registerPush(this, APP_ID, APP_KEY);
         }
 
         try {
-            SDKInitializer.initialize(instance);
+//            SDKInitializer.initialize(instance);
+            GlideCacheUtil.getInstance().clearImageAllCache(this);
         } catch (Exception e) {
             e.printStackTrace();
         }
