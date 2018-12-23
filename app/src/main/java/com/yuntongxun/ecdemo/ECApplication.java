@@ -103,7 +103,7 @@ public class ECApplication extends Application {
 
         try {
 //            SDKInitializer.initialize(instance);
-            GlideCacheUtil.getInstance().clearImageAllCache(this);
+            clearImageCache();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -220,6 +220,12 @@ public class ECApplication extends Application {
                 // .writeDebugLogs() // Remove for release app
                 .build();//开始构建
         ImageLoader.getInstance().init(config);
+    }
+
+    private void clearImageCache(){
+        GlideCacheUtil.getInstance().clearImageAllCache(this);
+        ImageLoader.getInstance().clearDiskCache();
+        ImageLoader.getInstance().clearMemoryCache();
     }
 
     /**
